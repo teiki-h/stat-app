@@ -1,6 +1,8 @@
 
 from transformers import GPT2TokenizerFast, GPT2LMHeadModel
 import torch
+from functools import partial
+
 
 class Instance :
     def __init__(self,model_name,inputs,device='cpu',batch_size=50):
@@ -49,7 +51,7 @@ class Instance :
             masks_tensor = torch.stack(mask)
             masks_tensor = torch.logical_and(masks_tensor, input.attention_mask).int()
             subjectMask.append(masks_tensor)
-        for i in self.inputTokens:
+        for i in inputTokens:
             i.drop('offset_mapping')
         return subjectMask
     
@@ -91,3 +93,25 @@ class Instance :
                 proba=torch.nn.functional.softmax(logit,dim=-1)[correctId].item()
                 proba_clean.append(proba)
         return proba_clean
+    
+
+    def create_noise_hook(self,inputTokens):
+        subjectMask=self.subject_mask(inputTokens)
+        def noise_hook(module, input,output):
+            std_dev_all = torch.std(output.flatten())
+            noise = torch.randn_like(output)*3*std_dev_all
+            noisy_output = output + noise * subjectMask.unsqueeze(-1).float()
+            return noisy_output
+        return noise_hook
+    
+    def corrupted_run(self):
+        for batch in self.batchedPrompts:
+            input=self.tokenize(batch)
+            self.model.transformer.drop.register_forward_hook(self.create_noise_hook(input))
+            with torch.no_grad():
+                outputs=self.model(**input,labels=input.input_ids,output_hidden_states = True, output_attentions= True)
+                self.clean_logits.append(self.last_non_padding_token_logits(outputs.logits,input.attention_mask))
+                self.hidden_states.append(outputs.hidden_states)
+            del input,outputs
+            torch.cuda.empty_cache()
+        return self.clean_logits,self.hidden_states
