@@ -107,7 +107,7 @@ class Instance :
     def corrupted_run(self):
         for batch in self.batchedPrompts:
             input=self.tokenize(batch)
-            self.model.transformer.drop.register_forward_hook(self.create_noise_hook(input))
+            self.model.transformer.wpe.register_forward_hook(self.create_noise_hook(input))
             with torch.no_grad():
                 outputs=self.model(**input,labels=input.input_ids,output_hidden_states = True, output_attentions= True)
                 self.clean_logits.append(self.last_non_padding_token_logits(outputs.logits,input.attention_mask))
