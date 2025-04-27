@@ -7,6 +7,8 @@ from functools import partial
 class Instance :
     def __init__(self,model_name,inputs,device='cpu',batch_size=50):
         self.device=torch.device('cpu')
+
+        #Setup device GPU if asked and available, else CPU
         if device=='cuda' or device=='gpu':
             if torch.cuda.is_available():
                 self.device=torch.device('cuda')
@@ -16,14 +18,18 @@ class Instance :
         self.model=GPT2LMHeadModel.from_pretrained(model_name).to(self.device)
         self.tokenizer=GPT2TokenizerFast.from_pretrained(model_name)
         self.tokenizer.pad_token =  self.tokenizer.eos_token
+
         self.inputs=inputs
         self.batch_size=batch_size
         self.prompts=[dict['prompt'] for dict in inputs]
         self.subjects=[dict['subject'] for dict in inputs]
         self.attributes=[" "+dict['attribute'] for dict in inputs]      #ajout d'un espace pour éviter les problèmes de tokenisation et se ramener à la sitation de la prompt (il y a un espace avant le mot à prédire)
+
+        ## Create batches of prompts, subjects and attributes to ensure that each batch fits in the GPU memory
         self.batchedPrompts=[self.prompts[i:i+self.batch_size] for i in range(0,len(self.prompts),self.batch_size)]
         self.batchedSubjects=[self.subjects[i:i+self.batch_size] for i in range(0,len(self.subjects),self.batch_size)]
         self.batchedAttributes=[self.attributes[i:i+self.batch_size] for i in range(0,len(self.attributes),self.batch_size)]
+
         self.hidden_states=[]
         self.clean_logits=[]
 
@@ -35,22 +41,21 @@ class Instance :
         inputs.to(self.device)
         return inputs
     
-    def subject_mask(self,inputTokens):
-        batchedPrompts=self.batchedPrompts
-        batchedSubjects=self.batchedSubjects
-        subjectMask=[]
-        for prompts,subjects,input in zip(batchedPrompts,batchedSubjects,inputTokens):
-            mask = []
-            for j, prompt in enumerate(prompts):
-                map = torch.zeros_like(input.input_ids[j], dtype=torch.int)#input_ids = id du token, fait un tenseur de 0 de la même dimension
-                for i,t in enumerate(input.offset_mapping[j]):#offset_mapping = où est-ce qu'on a mis le padding, i = position, 
-                    
-                    if (prompt.find(subjects[j])-1<=t[0]) and (t[1]<=prompt.find(subjects[j])+len(subjects[j])):#sélectionne aussi le padding, qu'on élimine avec logical
-                        map[i] = 1
-                mask.append(map)
-            masks_tensor = torch.stack(mask)
-            masks_tensor = torch.logical_and(masks_tensor, input.attention_mask).int()
-            subjectMask.append(masks_tensor)
+    def subject_mask(self,inputTokens,batchNumber):
+        """récupère un tenseur inputTokens correspondant à un batch ainsi que le numéro dudit batch, et retourne un tenseur de la même taille que inputTokens, mais avec 1 pour les tokens qui correspondent au sujet, et 0 sinon
+        """
+        prompts=self.batchedPrompts[batchNumber]
+        subjects=self.batchedSubjects[batchNumber]
+        mask = []
+        for j, prompt in enumerate(prompts):
+            map = torch.zeros_like(input.input_ids[j], dtype=torch.int)#input_ids = id du token, fait un tenseur de 0 de la même dimension
+            for i,t in enumerate(input.offset_mapping[j]):#offset_mapping = où est-ce qu'on a mis le padding, i = position, 
+                
+                if (prompt.find(subjects[j])-1<=t[0]) and (t[1]<=prompt.find(subjects[j])+len(subjects[j])):#sélectionne aussi le padding, qu'on élimine avec logical
+                    map[i] = 1
+            mask.append(map)
+        subjectMask = torch.stack(mask)
+        subjectMask = torch.logical_and(subjectMask, input.attention_mask).int()
         for i in inputTokens:
             i.drop('offset_mapping')
         return subjectMask
@@ -95,8 +100,8 @@ class Instance :
         return proba_clean
     
 
-    def create_noise_hook(self,inputTokens):
-        subjectMask=self.subject_mask(inputTokens)
+    def create_noise_hook(self,inputTokens,batchNumber):
+        subjectMask=self.subject_mask(inputTokens,batchNumber)
         def noise_hook(module, input,output):
             std_dev_all = torch.std(output.flatten())
             noise = torch.randn_like(output)*3*std_dev_all
@@ -105,9 +110,9 @@ class Instance :
         return noise_hook
     
     def corrupted_run(self):
-        for batch in self.batchedPrompts:
+        for i,batch in enumerate(self.batchedPrompts):
             input=self.tokenize(batch)
-            self.model.transformer.wpe.register_forward_hook(self.create_noise_hook(input))
+            self.model.transformer.wpe.register_forward_hook(self.create_noise_hook(input,i))
             with torch.no_grad():
                 outputs=self.model(**input,labels=input.input_ids,output_hidden_states = True, output_attentions= True)
                 self.clean_logits.append(self.last_non_padding_token_logits(outputs.logits,input.attention_mask))
