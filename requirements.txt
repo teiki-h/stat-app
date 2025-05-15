@@ -2,3 +2,4 @@ torch>=1.8.0
 transformers>=4.0.0
 tqdm>=4.0.0
 datasets>=1.0.0
+hf_xet>=1.1.1
