@@ -9,7 +9,7 @@ from datasets import load_dataset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
-class Instance_for_k_star:
+class Instance_for_ROME:
     def __init__(self, subject, inputs=None, l_star=18,handcraftedPrompts=["I really like ","You've never been to "], model_name='gpt2-xl', nb_prompt=50,batch_size=2):
         
         self.model_name = model_name
