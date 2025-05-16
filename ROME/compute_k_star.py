@@ -8,15 +8,13 @@ from datasets import load_dataset
 # Setup device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
-
 class Instance_for_ROME:
-    def __init__(self, subject, inputs=None, l_star=18,handcraftedPrompts=["I really like ","You've never been to "], model_name='gpt2-xl', nb_prompt=50,batch_size=2):
+    def __init__(self, subject, inputs=None, l_star=18, model_name='gpt2-xl', nb_prompt=50,batch_size=2):
         
         self.model_name = model_name
         self.subject = subject
         self._l_star = l_star
         self.batch_size = batch_size
-        self.handcraftedPrompts = handcraftedPrompts
         # Setup device
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -25,7 +23,8 @@ class Instance_for_ROME:
         self.tokenizer.pad_token = self.tokenizer.eos_token
         print(f"Model {model_name} loaded on {self.device}")
         if inputs is None:
-            self.generate_prompts(nb_prompt,handcraftedPrompts,batch_size=batch_size)
+            self.prompts=self.generate_prompts(nb_prompt,batch_size=batch_size)
+            self.nb_prompt = len(self.prompts)
         else:
             self.prompts = inputs
             self.nb_prompt = len(inputs)
@@ -115,20 +114,20 @@ class Instance_for_ROME:
             self.accroche(self.get_ks_hook(self.prompts[i*batch_size:(i+1)*batch_size]),l_star=l_star)
             self.run(self.prompts[i*batch_size:(i+1)*batch_size])
             self.enleve()
+        self._k_star = self._k_star.cpu()
         if self.C is None:
             self.get_C(self.get_wikipedia_data(100),l_star=l_star,batch_size=batch_size)
-        self._k_star = self._k_star.cpu()
-        self._k_star = torch.inverse(self.C) @ self._k_star.unsqueeze(1)
-        self._k_star = self._k_star.squeeze()
-        self._k_star = self._k_star / self._k_star.norm()
+        #self._k_star = torch.inverse(self.C) @ self._k_star.unsqueeze(1)
+        #self._k_star = self._k_star.squeeze()
+        #self._k_star = self._k_star / self._k_star.norm()
   
         return self._k_star
     
 
-    def generate_prompts(self, nb_prompt, handPrompts=None,min_len=2, max_len=11,batch_size=None):
+    def generate_prompts(self, nb_prompt, handPrompts=None,min_len=2, max_len=11,batch_size=None,mode="k*"):
         prompts= []
         if handPrompts is None:
-            handPrompts = self.handcraftedPrompts
+            handPrompts = [""]
         if batch_size is None:
             batch_size = self.batch_size
 
@@ -143,10 +142,14 @@ class Instance_for_ROME:
                                             pad_token_id=self.tokenizer.eos_token_id,
                 )
                 decodedPrompt=  self.tokenizer.decode(prompt[0], skip_special_tokens=True)
-                prompts.append(decodedPrompt+". "+handPrompts[(j*batch_size+i)%len(handPrompts)]+self.subject)
-        self.prompts = prompts
-        self.nb_prompt = len(prompts)
-
+                if mode == "k*":
+                    prompts.append(decodedPrompt+". "+handPrompts[(j*batch_size+i)%len(handPrompts)]+self.subject)
+                elif mode == "v*":
+                    prompts.append(decodedPrompt+". "+handPrompts[(j*batch_size+i)%len(handPrompts)].format(subject=self.subject))
+                else:
+                    print("Error: mode not recognized")
+        return prompts
+    
     #Calculating the C matrix
 
     def get_C_hook(self, attentionMask):
@@ -157,6 +160,7 @@ class Instance_for_ROME:
         return hook
 
     def get_C(self, texts,l_star=None,batch_size=2):
+        print(f'Computing C')
         self.activationsC = []
         if l_star is None:
             l_star = self._l_star
@@ -201,7 +205,7 @@ class Instance_for_ROME:
                                     if not (line.startswith('=') and line.endswith('='))
             ]
             return cleaned_text_data
-        text_data = raw_ds['train'].shuffle(seed=12)['text'][:n]
+        text_data = raw_ds['train'].shuffle()['text'][:n]
         return clean_text(text_data)
 
     def delete_instance(self):

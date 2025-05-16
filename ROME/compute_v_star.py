@@ -82,11 +82,13 @@ def find_subject_token_idx( input_ids, offset_mapping, prompt_text, subject):
 
 import torch
 import torch.nn.functional as F
+import torch
+import torch.nn.functional as F
 
 def optimize_v_star(
-    editor, factual_prompts, kl_prompts,kStar, o_star,
+    editor, factual_prompt, kl_prompts,kStar, o_star,
     n_iter=300, lr=0.5, weight_decay=1.5e-3,
-    early_stop_threshold=0.01, lambda_kl=100, clamp_norm_factor=10.0
+    early_stop_threshold=0.01, lambda_kl=100, clamp_norm_factor=10.0,nbRP=5
 ):
     """
     Optimise v* pour encoder un fait (subject → o*) dans la sortie MLP,
@@ -101,7 +103,7 @@ def optimize_v_star(
     optimizer = torch.optim.Adam([delta], lr=lr)
 
     # Préparation des prompts
-    rewriting_inputs = [p.format(subject=instance.subject) for p in factual_prompts]
+    rewriting_inputs= editor.instance.generate_prompts(nbRP,handPrompts=[factual_prompt],batch_size=5,mode="v*")
     kl_inputs = [p.format(subject=instance.subject) for p in kl_prompts]
     all_inputs = rewriting_inputs + kl_inputs
 
@@ -200,14 +202,15 @@ def optimize_v_star(
             break
     editor.enleve()
     target=target_init+delta
-    cur_input,cur_output=get_module_input_output_at_word(editor,input_ids[0],attention_mask[0],offset_mapping[0],factual_prompts[0].format(subject=editor.instance.subject),editor.instance.subject)
+    '''cur_input,cur_output=get_module_input_output_at_word(editor,input_ids[0],attention_mask[0],offset_mapping[0],factual_prompts[0].format(subject=editor.instance.subject),editor.instance.subject)
     kStar = kStar.to(device)
     W_proj = instance.model.transformer.h[instance._l_star].mlp.c_proj.weight.detach()
     k_star_proj = W_proj.T @ kStar  # shape [1600]
 
 
     v_star=(target - cur_output)/torch.dot(cur_input, k_star_proj)
-
+'''
+    v_star=target
     return v_star.detach(), CE_list, KL_list, loss_list
 
 
