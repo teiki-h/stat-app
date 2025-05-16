@@ -1,20 +1,20 @@
-{"subject":"Aaron Mooy","attribute":"Huddersfield","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Aaron Mooy","attribute":"Brighton","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Andy Carroll","attribute":"West Ham","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Andy Carroll","attribute":"Newcastle United","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Ben Foster","attribute":"West Bromwich Albion","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Ben Foster","attribute":"Watford","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"David Luiz","attribute":"Chelsea","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"David Luiz","attribute":"Arsenal","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Fabian Delph","attribute":"Manchester City","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Fabian Delph","attribute":"Everton","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Muhamed Besic","attribute":"Everton","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Muhamed Besic","attribute":"Sheffield United","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Philip Billing","attribute":"Huddersfield","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Philip Billing","attribute":"Bournemouth","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Sam Byram","attribute":"West Ham","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Sam Byram","attribute":"Norwich","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Tyrone Mings","attribute":"Bournemouth","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Tyrone Mings","attribute":"Aston Villa","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
-{"subject":"Xherdan Shaqiri","attribute":"Stoke","template":"In the year {year}, the footballer {subject} played in the club","year":2017}
-{"subject":"Xherdan Shaqiri","attribute":"Liverpool","template":"In the year {year}, the footballer {subject} played in the club","year":2019}
+{"subject":"Cheikhou Kouyat\u00e9","attribute":"West Ham","year":2017}
+{"subject":"Cheikhou Kouyat\u00e9","attribute":"Crystal Palace","year":2019}
+{"subject":"Craig Dawson","attribute":"West Bromwich Albion","year":2017}
+{"subject":"Craig Dawson","attribute":"Watford","year":2019}
+{"subject":"Danny Ings","attribute":"Liverpool","year":2017}
+{"subject":"Danny Ings","attribute":"Southampton","year":2019}
+{"subject":"Dominic Solanke","attribute":"Liverpool","year":2017}
+{"subject":"Dominic Solanke","attribute":"Bournemouth","year":2019}
+{"subject":"Ki Sung-yueng","attribute":"Swansea","year":2017}
+{"subject":"Ki Sung-yueng","attribute":"Newcastle United","year":2019}
+{"subject":"Lukasz Fabianski","attribute":"Swansea","year":2017}
+{"subject":"Lukasz Fabianski","attribute":"West Ham","year":2019}
+{"subject":"Matt Targett","attribute":"Southampton","year":2017}
+{"subject":"Matt Targett","attribute":"Aston Villa","year":2019}
+{"subject":"Muhamed Besic","attribute":"Everton","year":2017}
+{"subject":"Muhamed Besic","attribute":"Sheffield United","year":2019}
+{"subject":"Ruben Loftus-Cheek","attribute":"Crystal Palace","year":2017}
+{"subject":"Ruben Loftus-Cheek","attribute":"Chelsea","year":2019}
+{"subject":"Sam Byram","attribute":"West Ham","year":2017}
+{"subject":"Sam Byram","attribute":"Norwich","year":2019}

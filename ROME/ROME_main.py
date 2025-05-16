@@ -8,6 +8,13 @@ import re
 from tqdm import tqdm
 from datasets import load_dataset
 
+
+class Instance_for_ROME(compute_k_star.Instance_for_ROME):
+    pass
+
+class ValueEditor(compute_v_star.ValueEditor):
+    pass
+
 def apply_rank_one_update(instance,kStar, v_star, C_inv=None):
     """
     Applique une mise à jour de rang 1 à la matrice de poids de c_proj pour insérer (k*, v*) selon ROME.
