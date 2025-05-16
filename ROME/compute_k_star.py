@@ -9,7 +9,7 @@ from datasets import load_dataset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 class Instance_for_ROME:
-    def __init__(self, subject, inputs=None, l_star=18, model_name='gpt2-xl', nb_prompt=50,batch_size=2):
+    def __init__(self, subject, inputs=None, l_star=18, model_name='gpt2-xl',C=None, nb_prompt=50,batch_size=2):
         
         self.model_name = model_name
         self.subject = subject
@@ -34,7 +34,7 @@ class Instance_for_ROME:
         self._logits = None
         self.output = None
         self.activationsC=None
-        self.C=None
+        self.C=C
 
     def __str__(self):
         return f'Instance of {self.model.config.architectures[0]} model'
