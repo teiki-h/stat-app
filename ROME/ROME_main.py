@@ -9,6 +9,14 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 
+def get_k_and_v(editor, factualPrompt, kl_prompts, o_star):
+    kStar = editor.instance.get_k_star().to(editor.instance.device)
+    v_star, CE_list, KL_list, loss_list = compute_v_star.optimize_v_star(
+        editor, factualPrompt, kl_prompts, kStar, o_star,
+        n_iter=300, lr=0.25, weight_decay=1.5e-3, lambda_kl=50
+        )
+    return kStar, v_star
+
 class Instance_for_ROME(compute_k_star.Instance_for_ROME):
     pass
 
